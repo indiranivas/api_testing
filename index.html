@@ -187,9 +187,46 @@
         </div>
 
         <div class="footer">
-            <p><span class="status"></span> Backend: <code>http://127.0.0.1:8000</code></p>
-            <p>Make sure FastAPI backend is running</p>
+            <p><span class="status"></span> Backend: <code id="backendUrl">Checking...</code></p>
+            <p id="statusMessage">Checking backend status...</p>
         </div>
     </div>
+
+    <script>
+        const API_URL = window.location.origin;
+        const statusElement = document.querySelector('.status');
+        const statusMessage = document.getElementById('statusMessage');
+        const backendUrl = document.getElementById('backendUrl');
+
+        // Update displayed URL
+        backendUrl.textContent = API_URL;
+
+        // Check backend health
+        async function checkBackend() {
+            try {
+                const response = await fetch(`${API_URL}/health`, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+
+                if (response.ok) {
+                    statusElement.style.background = '#22c55e';
+                    statusMessage.textContent = 'Backend is running ✓';
+                } else {
+                    statusElement.style.background = '#ef4444';
+                    statusMessage.textContent = 'Backend not responding';
+                }
+            } catch (error) {
+                statusElement.style.background = '#ef4444';
+                statusMessage.textContent = 'Backend is not running';
+            }
+        }
+
+        // Check on page load
+        checkBackend();
+
+        // Re-check every 10 seconds
+        setInterval(checkBackend, 10000);
+    </script>
 </body>
 </html>

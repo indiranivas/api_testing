@@ -14,6 +14,11 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 from typing import Optional, Dict
 import uuid
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI()
 
@@ -25,6 +30,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# -------------------------
+# Configuration
+# -------------------------
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./telemetry.db")
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
 # -------------------------
 # Helper Functions
@@ -42,13 +53,15 @@ def parse_timestamp(ts):
         except:
             return datetime.now()
     return datetime.now()
-
-# SQLite DB
-DATABASE_URL = "sqlite:///./telemetry.db"
-engine = create_engine(
-    DATABASE_URL,
-    connect_args={"check_same_thread": False}
-)
+if DATABASE_URL.startswith("sqlite"):
+    # SQLite specific configuration
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False}
+    )
+else:
+    # PostgreSQL and other databases
+    engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
@@ -647,3 +660,27 @@ def get_workflow_summary(workflow_name: str):
 @app.get("/health")
 def health():
     return {"status": "healthy"}
+
+
+# -------------------------
+# Serve Static Files (for production deployment)
+# -------------------------
+from fastapi.staticfiles import StaticFiles
+import pathlib
+
+# Try to serve static files if they exist
+static_dir = pathlib.Path(__file__).parent
+html_files = ["index.html", "test.html", "dashboard.html"]
+
+for html_file in html_files:
+    file_path = static_dir / html_file
+    if file_path.exists():
+        # Mount static files at the end
+        break
+
+# Mount static files directory
+try:
+    app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
+except Exception as e:
+    if DEBUG:
+        print(f"Warning: Could not mount static files: {e}")

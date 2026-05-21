@@ -662,7 +662,8 @@
     </div>
 
     <script>
-        const API_URL = 'http://127.0.0.1:8000';
+        // Auto-detect API URL based on current location
+        const API_URL = window.location.origin;
         let refreshInterval = null;
         let autoRefreshEnabled = true;
 
