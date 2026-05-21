@@ -9,9 +9,9 @@ from sqlalchemy import (
     DateTime,
     JSON
 )
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict
 import uuid
 import os
@@ -74,15 +74,15 @@ Base = declarative_base()
 # -------------------------
 class TelemetryLog(Base):
     __tablename__ = "telemetry_logs"
-    id = Column(String, primary_key=True)
-    session_id = Column(String, index=True)
-    execution_id = Column(String)
-    workflow_name = Column(String)
-    agent_name = Column(String)
-    agent_type = Column(String)
-    event_type = Column(String)
-    status = Column(String)
-    step_name = Column(String)
+    id = Column(String(36), primary_key=True)
+    session_id = Column(String(256), index=True)
+    execution_id = Column(String(256))
+    workflow_name = Column(String(256))
+    agent_name = Column(String(256))
+    agent_type = Column(String(128))
+    event_type = Column(String(128))
+    status = Column(String(64))
+    step_name = Column(String(256))
     timestamp = Column(DateTime)
     latency_ms = Column(Integer)
     event_metadata = Column(JSON, nullable=True)
@@ -269,7 +269,7 @@ async def salesforce_telemetry(payload: dict):
             "event_type": "agent_completed",
             "status": "success" if row.get("success_rate__c", 0) > 80 else "partial",
             "step_name": row.get("action_label__c", "Agent Action"),
-            "timestamp": row.get("session_date__c", datetime.now(datetime.UTC).isoformat()),
+            "timestamp": row.get("session_date__c", datetime.now(timezone.utc).isoformat()),
             "latency_ms": int(row.get("avg_session_duration__c", 0) or 0),
             "event_metadata": {
                 "channel": row.get("channel_type__c"),
