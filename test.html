@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telemetry Testing - Send Events</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .nav-home {
+            color: white;
+            text-decoration: none;
+            font-size: 13px;
+            opacity: 0.8;
+            transition: all 0.3s;
+        }
+
+        .nav-home:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav a:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav a.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card h2 .icon {
+            font-size: 28px;
+        }
+
+        /* Form Styles */
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            grid-column: 1 / 2;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            grid-column: 2 / 3;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+            grid-column: 3 / 4;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        /* Status Messages */
+        .status {
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 15px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Preset Scenarios */
+        .scenarios {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .scenario-btn {
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #667eea;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .scenario-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Request History */
+        .history {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-label {
+            color: #666;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .history-value {
+            color: #333;
+            word-break: break-all;
+        }
+
+        .test-description {
+            background: #e8e9f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-description h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .test-description p {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .info-box {
+            background: #cce5ff;
+            border: 1px solid #b3d9ff;
+            color: #004085;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .scenarios {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🧪 Telemetry Testing</h1>
+            <p>Send test events and validate your telemetry system</p>
+            <div class="nav-container">
+                <a href="index.html" class="nav-home">← Back Home</a>
+                <div class="nav">
+                    <a href="test.html" class="active">🧪 Testing</a>
+                    <a href="dashboard.html">📊 Dashboard</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <strong>💡 How to use:</strong>
+            1. Fill out the test form below
+            2. Click "Send Telemetry" to send a single event
+            3. Or click one of the preset scenarios to test multiple agents
+            4. Check the Dashboard page to see results in real-time
+        </div>
+
+        <!-- Single Event Testing -->
+        <div class="card">
+            <h2><span class="icon">📤</span> Send Single Event</h2>
+
+            <div class="test-description">
+                <h4>Single Event Test</h4>
+                <p>Send one telemetry event from any agent. Use this to test individual agent telemetry or create custom workflows step-by-step.</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Session ID *</label>
+                    <input type="text" id="sessionId" value="test_session_001" placeholder="e.g., workflow_001">
+                </div>
+                <div class="form-group">
+                    <label>Workflow Name</label>
+                    <input type="text" id="workflow" value="Lead-to-Order" placeholder="e.g., Lead-to-Order">
+                </div>
+                <div class="form-group">
+                    <label>Agent Name *</label>
+                    <select id="agentName">
+                        <option value="Salesforce Agent">Salesforce Agent</option>
+                        <option value="Boomi Agent">Boomi Agent</option>
+                        <option value="D365 Agent">D365 Agent</option>
+                        <option value="M365 Agent">M365 Agent</option>
+                        <option value="Custom Agent">Custom Agent</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Event Type</label>
+                    <select id="eventType">
+                        <option value="agent_started">Agent Started</option>
+                        <option value="agent_completed">Agent Completed</option>
+                        <option value="agent_failed">Agent Failed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="status">
+                        <option value="success">Success</option>
+                        <option value="error">Error</option>
+                        <option value="running">Running</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Latency (ms)</label>
+                    <input type="number" id="latency" value="250" min="0" max="10000">
+                </div>
+                <div class="form-group">
+                    <label>Step Name</label>
+                    <input type="text" id="stepName" value="Process Step" placeholder="e.g., Lead Detection">
+                </div>
+                <div class="form-group">
+                    <label>Metadata (JSON)</label>
+                    <textarea id="metadata" placeholder='{"key": "value"}'></textarea>
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <button class="btn-primary" onclick="sendSingleEvent()">Send Telemetry</button>
+                <button class="btn-secondary" onclick="clearForm()">Clear Form</button>
+                <button class="btn-secondary" onclick="generateTestSessionId()">Generate Session ID</button>
+            </div>
+
+            <div id="singleEventStatus" class="status"></div>
+        </div>
+
+        <!-- Multi-Agent Scenarios -->
+        <div class="card">
+            <h2><span class="icon">🎬</span> Test Scenarios</h2>
+
+            <div class="test-description">
+                <h4>Pre-built Workflows</h4>
+                <p>Click any scenario to automatically send telemetry from multiple agents in sequence. Each scenario simulates a real workflow with multiple platforms.</p>
+            </div>
+
+            <div class="scenarios">
+                <button class="scenario-btn" onclick="runLeadToOrderDemo()">
+                    📊 Lead to Order<br>
+                    <span style="font-size: 12px; font-weight: normal;">(Salesforce → Boomi → D365 → M365)</span>
+                </button>
+                <button class="scenario-btn" onclick="runErrorScenario()">
+                    ⚠️ Error Handling<br>
+                    <span style="font-size: 12px; font-weight: normal;">(Test agent with error status)</span>
+                </button>
+                <button class="scenario-btn" onclick="runSequentialDemo()">
+                    ⏳ Sequential Steps<br>
+                    <span style="font-size: 12px; font-weight: normal;">(3 agents in sequence)</span>
+                </button>
+                <button class="scenario-btn" onclick="runParallelDemo()">
+                    ⚡ Parallel Processing<br>
+                    <span style="font-size: 12px; font-weight: normal;">(Multiple agents simultaneously)</span>
+                </button>
+            </div>
+
+            <div id="scenarioStatus" class="status"></div>
+        </div>
+
+        <!-- Request History -->
+        <div class="card">
+            <h2><span class="icon">📋</span> Request History</h2>
+            <div class="history" id="requestHistory">
+                <div class="history-item" style="color: #999;">
+                    No requests sent yet. Send a telemetry event to see it here.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:8000';
+        const MAX_HISTORY = 20;
+        let requestHistory = [];
+
+        async function sendSingleEvent() {
+            const payload = {
+                session_id: document.getElementById('sessionId').value || `session_${Date.now()}`,
+                execution_id: `exec_${Date.now()}`,
+                workflow_name: document.getElementById('workflow').value || 'Test-Workflow',
+                agent_name: document.getElementById('agentName').value,
+                agent_type: getAgentType(document.getElementById('agentName').value),
+                event_type: document.getElementById('eventType').value,
+                status: document.getElementById('status').value,
+                step_name: document.getElementById('stepName').value || 'Test Step',
+                timestamp: new Date().toISOString(),
+                latency_ms: parseInt(document.getElementById('latency').value) || 0,
+                metadata: tryParseJSON(document.getElementById('metadata').value) || {}
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/v1/telemetry`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    showStatus('singleEventStatus', `✓ Event sent successfully! Session: ${payload.session_id}`, 'success');
+                    addToHistory('Single Event', payload);
+                } else {
+                    showStatus('singleEventStatus', '✗ Error sending event', 'error');
+                }
+            } catch (error) {
+                showStatus('singleEventStatus', `✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runLeadToOrderDemo() {
+            const sessionId = `lead_order_${Date.now()}`;
+            showStatus('scenarioStatus', '⏳ Sending Lead-to-Order workflow...', 'success');
+
+            const agents = [
+                { name: 'Salesforce Agent', type: 'CRM', latency: 150, step: 'Lead Detection' },
+                { name: 'Boomi Agent', type: 'Integration', latency: 280, step: 'Data Transform' },
+                { name: 'D365 Agent', type: 'ERP', latency: 450, step: 'Order Creation' },
+                { name: 'M365 Agent', type: 'SaaS', latency: 120, step: 'Send Notification' }
+            ];
+
+            for (const agent of agents) {
+                const payload = {
+                    session_id: sessionId,
+                    execution_id: `exec_${agent.name.replace(' ', '_')}_${Date.now()}`,
+                    workflow_name: 'Lead-to-Order',
+                    agent_name: agent.name,
+                    agent_type: agent.type,
+                    event_type: 'agent_completed',
+                    status: 'success',
+                    step_name: agent.step,
+                    timestamp: new Date().toISOString(),
+                    latency_ms: agent.latency,
+                    metadata: {}
+                };
+
+                try {
+                    await fetch(`${API_URL}/api/v1/telemetry`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    addToHistory('Scenario', payload);
+                } catch (error) {
+                    console.error(`Error: ${agent.name}`, error);
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+
+            showStatus('scenarioStatus', `✓ Workflow complete! Session: ${sessionId}`, 'success');
+        }
+
+        async function runErrorScenario() {
+            const sessionId = `error_test_${Date.now()}`;
+            showStatus('scenarioStatus', '⏳ Sending error scenario...', 'success');
+
+            const payload = {
+                session_id: sessionId,
+                execution_id: `exec_error_${Date.now()}`,
+                workflow_name: 'Error-Test',
+                agent_name: 'Boomi Agent',
+                agent_type: 'Integration',
+                event_type: 'agent_failed',
+                status: 'error',
+                step_name: 'Data Processing',
+                timestamp: new Date().toISOString(),
+                latency_ms: 500,
+                metadata: { error: 'Connection timeout', retry_count: 3 }
+            };
+
+            try {
+                await fetch(`${API_URL}/api/v1/telemetry`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                addToHistory('Error Scenario', payload);
+                showStatus('scenarioStatus', `✓ Error event sent! Session: ${sessionId}`, 'success');
+            } catch (error) {
+                showStatus('scenarioStatus', `✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function runSequentialDemo() {
+            const sessionId = `sequential_${Date.now()}`;
+            showStatus('scenarioStatus', '⏳ Sending sequential workflow...', 'success');
+
+            const steps = [
+                { agent: 'Salesforce Agent', type: 'CRM', latency: 100 },
+                { agent: 'Boomi Agent', type: 'Integration', latency: 200 },
+                { agent: 'D365 Agent', type: 'ERP', latency: 150 }
+            ];
+
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                const payload = {
+                    session_id: sessionId,
+                    execution_id: `exec_seq_${i}_${Date.now()}`,
+                    workflow_name: 'Sequential-Process',
+                    agent_name: step.agent,
+                    agent_type: step.type,
+                    event_type: 'agent_completed',
+                    status: 'success',
+                    step_name: `Step ${i + 1}`,
+                    timestamp: new Date().toISOString(),
+                    latency_ms: step.latency,
+                    metadata: {}
+                };
+
+                try {
+                    await fetch(`${API_URL}/api/v1/telemetry`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    addToHistory('Sequential Demo', payload);
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 400));
+            }
+
+            showStatus('scenarioStatus', `✓ Sequential workflow complete! Session: ${sessionId}`, 'success');
+        }
+
+        async function runParallelDemo() {
+            const sessionId = `parallel_${Date.now()}`;
+            showStatus('scenarioStatus', '⏳ Sending parallel workflow...', 'success');
+
+            const agents = [
+                { name: 'Salesforce Agent', type: 'CRM', latency: 200 },
+                { name: 'Boomi Agent', type: 'Integration', latency: 250 },
+                { name: 'M365 Agent', type: 'SaaS', latency: 150 }
+            ];
+
+            // Send all in parallel
+            const promises = agents.map(agent => {
+                const payload = {
+                    session_id: sessionId,
+                    execution_id: `exec_${agent.name.replace(' ', '_')}_${Date.now()}`,
+                    workflow_name: 'Parallel-Process',
+                    agent_name: agent.name,
+                    agent_type: agent.type,
+                    event_type: 'agent_completed',
+                    status: 'success',
+                    step_name: `${agent.name} Task`,
+                    timestamp: new Date().toISOString(),
+                    latency_ms: agent.latency,
+                    metadata: { parallel: true }
+                };
+
+                return fetch(`${API_URL}/api/v1/telemetry`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    addToHistory('Parallel Demo', payload);
+                });
+            });
+
+            try {
+                await Promise.all(promises);
+                showStatus('scenarioStatus', `✓ Parallel workflow complete! Session: ${sessionId}`, 'success');
+            } catch (error) {
+                showStatus('scenarioStatus', `✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function getAgentType(agentName) {
+            const types = {
+                'Salesforce Agent': 'CRM',
+                'Boomi Agent': 'Integration',
+                'D365 Agent': 'ERP',
+                'M365 Agent': 'SaaS'
+            };
+            return types[agentName] || 'Custom';
+        }
+
+        function tryParseJSON(str) {
+            try {
+                return str.trim() ? JSON.parse(str) : {};
+            } catch {
+                return {};
+            }
+        }
+
+        function showStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            el.textContent = message;
+            el.className = `status show ${type}`;
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        function clearForm() {
+            document.getElementById('sessionId').value = 'test_session_001';
+            document.getElementById('workflow').value = 'Lead-to-Order';
+            document.getElementById('agentName').value = 'Salesforce Agent';
+            document.getElementById('eventType').value = 'agent_completed';
+            document.getElementById('status').value = 'success';
+            document.getElementById('latency').value = '250';
+            document.getElementById('stepName').value = 'Process Step';
+            document.getElementById('metadata').value = '';
+        }
+
+        function generateTestSessionId() {
+            const sessionId = `test_${Date.now()}`;
+            document.getElementById('sessionId').value = sessionId;
+            showStatus('singleEventStatus', `Generated: ${sessionId}`, 'success');
+        }
+
+        function addToHistory(type, payload) {
+            const historyItem = {
+                timestamp: new Date().toLocaleTimeString(),
+                type: type,
+                sessionId: payload.session_id,
+                agentName: payload.agent_name,
+                status: payload.status,
+                latency: payload.latency_ms
+            };
+
+            requestHistory.unshift(historyItem);
+            if (requestHistory.length > MAX_HISTORY) {
+                requestHistory.pop();
+            }
+
+            updateHistoryDisplay();
+        }
+
+        function updateHistoryDisplay() {
+            const historyEl = document.getElementById('requestHistory');
+            if (requestHistory.length === 0) {
+                historyEl.innerHTML = '<div class="history-item" style="color: #999;">No requests sent yet.</div>';
+                return;
+            }
+
+            let html = '';
+            requestHistory.forEach((item, index) => {
+                html += `
+                    <div class="history-item">
+                        <div class="history-label">${index + 1}. ${item.type} - ${item.timestamp}</div>
+                        <div class="history-value">
+                            Session: <strong>${item.sessionId}</strong> |
+                            Agent: <strong>${item.agentName}</strong> |
+                            Status: <strong>${item.status}</strong> |
+                            Latency: <strong>${item.latency}ms</strong>
+                        </div>
+                    </div>
+                `;
+            });
+
+            historyEl.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
