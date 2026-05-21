@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: telemetry-system
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: sh -c "uvicorn main:app --host 0.0.0.0 --port 8000 & python -m http.server 8001 --bind 0.0.0.0"
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: true
