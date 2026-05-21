@@ -1,6 +1,7 @@
 services:
   - type: web
     name: telemetry-system
+<<<<<<< HEAD
     runtime: python39
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn main:app --workers 3 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
@@ -11,3 +12,13 @@ services:
         value: "false"
       - key: PYTHONUNBUFFERED
         value: "1"
+=======
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: sh -c "uvicorn main:app --host 0.0.0.0 --port 8000 & python -m http.server 8001 --bind 0.0.0.0"
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: true
+>>>>>>> 4a0c5d1f678b884f9c9646a201159ca37c874942
