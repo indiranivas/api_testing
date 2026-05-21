@@ -7,7 +7,7 @@ from sqlalchemy import (
     String,
     Integer,
     DateTime,
-    JSON
+    Text
 )
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from typing import Optional, Dict
 import uuid
 import os
+import json
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -74,21 +75,25 @@ Base = declarative_base()
 # -------------------------
 class TelemetryLog(Base):
     __tablename__ = "telemetry_logs"
-    id = Column(String(36), primary_key=True)
-    session_id = Column(String(256), index=True)
-    execution_id = Column(String(256))
-    workflow_name = Column(String(256))
-    agent_name = Column(String(256))
-    agent_type = Column(String(128))
-    event_type = Column(String(128))
-    status = Column(String(64))
-    step_name = Column(String(256))
-    timestamp = Column(DateTime)
-    latency_ms = Column(Integer)
-    event_metadata = Column(JSON, nullable=True)
+
+    id = Column(String(36), primary_key=True, nullable=False)
+    session_id = Column(String(256), nullable=False, index=True)
+    execution_id = Column(String(256), nullable=False)
+    workflow_name = Column(String(256), nullable=False)
+    agent_name = Column(String(256), nullable=False)
+    agent_type = Column(String(128), nullable=False)
+    event_type = Column(String(128), nullable=False)
+    status = Column(String(64), nullable=False)
+    step_name = Column(String(256), nullable=False)
+    timestamp = Column(DateTime, nullable=False)
+    latency_ms = Column(Integer, nullable=True)
+    event_metadata = Column(Text, nullable=True)
 
 # Create tables
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Warning: Database initialization error: {e}")
 
 # -------------------------
 # Request Model
@@ -125,7 +130,7 @@ async def track_telemetry(payload: TelemetryPayload):
             step_name=payload.step_name,
             timestamp=payload.timestamp,
             latency_ms=payload.latency_ms,
-            event_metadata=payload.metadata
+            event_metadata=json.dumps(payload.metadata) if payload.metadata else None
         )
         db.add(telemetry)
         db.commit()
@@ -301,7 +306,7 @@ async def salesforce_telemetry(payload: dict):
                 step_name=telemetry_data["step_name"],
                 timestamp=telemetry_data["timestamp"],
                 latency_ms=telemetry_data["latency_ms"],
-                event_metadata=telemetry_data.get("event_metadata")
+                event_metadata=json.dumps(telemetry_data.get("event_metadata")) if telemetry_data.get("event_metadata") else None
             )
             db.add(telemetry)
             db.commit()
@@ -368,7 +373,7 @@ async def boomi_telemetry(payload: dict):
                 step_name=telemetry_data["step_name"],
                 timestamp=telemetry_data["timestamp"],
                 latency_ms=telemetry_data["latency_ms"],
-                event_metadata=telemetry_data.get("event_metadata")
+                event_metadata=json.dumps(telemetry_data.get("event_metadata")) if telemetry_data.get("event_metadata") else None
             )
             db.add(telemetry)
             db.commit()
@@ -436,7 +441,7 @@ async def d365_telemetry(payload: dict):
                 step_name=telemetry_data["step_name"],
                 timestamp=telemetry_data["timestamp"],
                 latency_ms=telemetry_data["latency_ms"],
-                event_metadata=telemetry_data.get("event_metadata")
+                event_metadata=json.dumps(telemetry_data.get("event_metadata")) if telemetry_data.get("event_metadata") else None
             )
             db.add(telemetry)
             db.commit()
@@ -504,7 +509,7 @@ async def m365_telemetry(payload: dict):
                 step_name=telemetry_data["step_name"],
                 timestamp=telemetry_data["timestamp"],
                 latency_ms=telemetry_data["latency_ms"],
-                event_metadata=telemetry_data.get("event_metadata")
+                event_metadata=json.dumps(telemetry_data.get("event_metadata")) if telemetry_data.get("event_metadata") else None
             )
             db.add(telemetry)
             db.commit()
